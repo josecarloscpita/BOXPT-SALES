@@ -32,12 +32,19 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{font-size:14px}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;-webkit-text-size-adjust:100%}
-/* PWA standalone — compensar status bar do iPhone */
+/* PWA standalone — compensar status bar do iPhone (notch/dynamic island) */
 @media all and (display-mode: standalone){
-  #tb{top:env(safe-area-inset-top);padding-top:0}
-  #sb{padding-top:env(safe-area-inset-top)}
-  #mn{margin-top:calc(54px + env(safe-area-inset-top))}
-  body{padding-top:0}
+  #tb{
+    top:0;
+    padding-top:env(safe-area-inset-top);
+    height:calc(54px + env(safe-area-inset-top));
+  }
+  #sb{
+    padding-top:env(safe-area-inset-top);
+  }
+  #mn{
+    margin-top:calc(54px + env(safe-area-inset-top));
+  }
 }
 #sb{position:fixed;top:0;left:0;width:var(--sw);height:100vh;height:-webkit-fill-available;background:var(--ink2);display:flex;flex-direction:column;z-index:100;transition:transform .3s;overflow-y:auto}
 #sbo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
@@ -790,7 +797,8 @@ async function forceSync(silent = false) {
       } catch(e){}
     }
     if (RAW.length === 0) {
-      document.getElementById('es-msg').textContent='Sem dados. Importa um ficheiro Excel.';
+      const esMsg = document.getElementById('es-msg');
+      if (esMsg) esMsg.textContent='Sem dados no servidor. Importa um ficheiro Excel.';
       setSyncUI(false, null);
     }
   } catch(err) {
@@ -802,19 +810,26 @@ async function forceSync(silent = false) {
 }
 
 function startAutoSync() {
-  // Sync imediato ao abrir
-  forceSync();
-  // Polling a cada 30 segundos (silencioso — nao muda UI a menos que haja dados novos)
+  // Pequeno delay para garantir que a PWA terminou de iniciar
+  setTimeout(() => forceSync(), 800);
+  // Polling a cada 30 segundos
   syncInterval = setInterval(() => forceSync(true), 30000);
-  // Sync ao voltar ao separador (quando comercial muda de app e volta)
+  // Sync ao voltar ao separador
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') forceSync(true);
   });
-  // Sync ao voltar online depois de estar sem rede
+  // Sync ao voltar online
   window.addEventListener('online', () => {
     showToast('Ligação restaurada — a sincronizar...', 'info');
     forceSync();
   });
+  // Retry se ao fim de 5 segundos ainda não há dados
+  setTimeout(() => {
+    if (RAW.length === 0) {
+      console.log('Retry sync...');
+      forceSync();
+    }
+  }, 5000);
 }
 
 function setSyncUI(on, meta) {
