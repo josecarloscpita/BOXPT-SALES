@@ -223,8 +223,8 @@ tbody td{padding:9px 13px;color:var(--ink);vertical-align:middle}
 </head>
 <body>
 
-<!-- SETUP SCREEN (shown when Supabase not configured) -->
-<div id="setup">
+<!-- Setup removido - credenciais incorporadas -->
+<div id="setup" style="display:none!important">
   <div class="setup-box">
     <img src="https://eu.boxpt.com/themes/boxpt2022/assets/img/logo.svg" alt="BOXPT" class="setup-logo"
       onerror="this.style.display='none'">
@@ -431,7 +431,7 @@ tbody td{padding:9px 13px;color:var(--ink);vertical-align:middle}
       </div>
       <div class="sync-bar-btns">
         <button class="sbtn" onclick="forceSync()">↻ Sincronizar</button>
-        <button class="sbtn danger" onclick="resetConfig()">⚙ Reconfigurar</button>
+
       </div>
     </div>
     <div class="tc" style="padding:20px;margin-bottom:12px">
@@ -1062,25 +1062,11 @@ function showToast(msg,type){const el=document.getElementById('toast');el.textCo
 
 // ── INIT ───────────────────────────────────────────────────────
 function init() {
-  const cfg = getCfg();
-  if (!cfg) {
-    // Mostrar setup
-    document.getElementById('setup').classList.add('show');
-    document.querySelector('#mn').style.display = 'none';
-    document.querySelector('#tb').style.display = 'none';
-    document.querySelector('#sb').style.display = 'none';
-    return;
-  }
-  SUPA_URL = cfg.url;
-  SUPA_KEY = cfg.key;
-  USER_NAME = cfg.name || 'equipa';
-  if (SUPA_URL === 'LOCAL') {
-    document.getElementById('sbinfo-txt').textContent='Modo local (sem cloud)';
-    try { const r=localStorage.getItem('boxpt_local_data');if(r){RAW=JSON.parse(r);RAW.forEach(rec=>{if(rec._dateStr)rec._date=isoToLocal(rec._dateStr);});FD=[...RAW];activateData({});}} catch(e){}
-    setSyncUI(RAW.length>0,null);
-  } else {
-    startAutoSync();
-  }
+  // Credenciais incorporadas — colegas abrem e vêem dados automaticamente
+  SUPA_URL = 'https://hgsisfbhwoifertnekbd.supabase.co';
+  SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhnc2lzZmJod29pZmVydG5la2JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTc0MDgsImV4cCI6MjA4ODU5MzQwOH0.6AUpKcTQZvB0Y2E1IJ6Galbc_cH6ltzIlgpR9TuakNw';
+  USER_NAME = localStorage.getItem('boxpt_username') || 'equipa';
+  startAutoSync();
 }
 
 window.addEventListener('load', init);
